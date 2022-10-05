@@ -1,0 +1,7 @@
+default: libmathfun.so
+
+libexamples.a: mathfun.c
+    gcc -shared -o libmathfun.so -fPIC mathfun.c
+
+clean:
+    rm *.so
