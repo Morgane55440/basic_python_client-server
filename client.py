@@ -5,7 +5,7 @@ import socket
 import pickle
 
 HOST = "127.0.0.1"
-PORT = 55555
+PORT = 55557
 MAX_DATA_SIZE = 65536
 CLIENT_PROMPT = "$ my_client "
 
@@ -32,9 +32,6 @@ def exec_query(server_socket):
             fibo_query(index,server_socket)
     if len(request) == 1 and request[0] == "list":
         list_query(server_socket)
-
-
-
 
 
 def main():

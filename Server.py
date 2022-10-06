@@ -1,7 +1,6 @@
 # Server
 from pymathfun import fibo_c
 import query_struct
-import async_socket
 
 import socket
 import asyncio
@@ -9,7 +8,7 @@ import pickle
 
 
 HOST = "127.0.0.1"
-PORT = 55555
+PORT = 55557
 MAX_DATA_SIZE = 1024
 CLIENT_NB = 1
 
@@ -24,25 +23,25 @@ async def async_exec(query : query_struct.Query) -> None:
         query.status = query_struct.Query_Status.DONE
 
 
-async def run_server(client_socket):
-    task_list = []
+async def run_server(client_socket, result_list):
+    try:
+        query = pickle.loads(client_socket.recv(MAX_DATA_SIZE))
+    except:
+        print("client disconnected")
+        return 
+    print('new query : {0}'.format(query.type))
+    if query.type == query_struct.Query_type.COMPUTE_FIBO:
+        query.status = query_struct.Query_Status.SCHEDULED
+        result_list.append(query)
+        return await asyncio.gather(run_server(client_socket, result_list), async_exec(query))
+    if query.type == query_struct.Query_type.LIST:
+        client_socket.send(pickle.dumps(result_list))
+    return await run_server(client_socket, result_list)
+
+def server_start(client_socket):
     result_list = []
-    client_socket.setblocking(False)
-    while True:
-        try:
-            query = await async_socket.async_recv(client_socket)
-        except:
-            break
-        if query.type == query_struct.Query_type.COMPUTE_FIBO:
-            query.status = query_struct.Query_Status.SCHEDULED
-            print("should start")
-            task_list.append(asyncio.create_task(async_exec(query)))
-            result_list.append(query)
-        if query.type == query_struct.Query_type.LIST:
-            await async_socket.async_send(client_socket, result_list)
-    print("disconnected")
-    for task in task_list:
-        await task
+    asyncio.run(run_server(client_socket, result_list))
+
 
 
 def main():
@@ -50,7 +49,8 @@ def main():
     server_socket.bind((HOST, PORT))        
     while True:
         server_socket.listen(CLIENT_NB)
-        client, addr = server_socket.accept()
-        asyncio.run(run_server(client))
+        client, _ = server_socket.accept()
+        print("client connected")
+        server_start(client)
         
 main()

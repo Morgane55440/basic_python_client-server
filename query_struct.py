@@ -8,12 +8,13 @@ class Query_type(Enum):
     LIST_END = 2
 
     def __str__(self):
-        if self.value == 0:
+        if self == Query_type.COMPUTE_FIBO:
             return "fibo"
-        if self.value == 1:
+        if self == Query_type.LIST:
             return "list"
-        if self.value == 2:
+        if self == Query_type.LIST_END:
             return "list end"
+        return "error_type"
 
 class Query_Status(Enum):
     TO_BE_SENT = 0
@@ -21,12 +22,13 @@ class Query_Status(Enum):
     DONE = 2
 
     def __str__(self):
-        if self.value == 0:
+        if self == Query_Status.TO_BE_SENT:
             return "to be sent"
-        if self.value == 1:
+        if self == Query_Status.SCHEDULED:
             return "scheduled"
-        if self.value == 2:
+        if self == Query_Status.DONE:
             return "done"
+        return "error_status"
 
 class Query:
     def __init__(self, type : Query_type, value = None ) -> None:

@@ -1,5 +1,5 @@
 cdef extern from "mathfun.h":  
-    int fibo(int index)
+    unsigned long long fibo(unsigned long index)
 
 def fibo_c(index : int) -> int:  
    return fibo(index)
