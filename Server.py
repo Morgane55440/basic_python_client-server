@@ -15,19 +15,15 @@ CLIENT_NB = 1
 
 
 async def async_exec(query : query_struct.Query) -> None:
-    """
-    executes a computable query
-    """
+    print("start")
     if (query.type == query_struct.Query_type.COMPUTE_FIBO):
         res = fibo_c(query.value) # Where there is potentially a long exectution time
+        print(query.value)
         query.result = res
         query.status = query_struct.Query_Status.DONE
 
 
-async def get_next_query(client_socket, result_list):
-    """
-    accepts a query, schedules or executes it immediatly depending on type, the calls itself recursively
-    """
+async def run_server(client_socket, result_list):
     try:
         query = pickle.loads(client_socket.recv(MAX_DATA_SIZE))
     except:
@@ -37,17 +33,14 @@ async def get_next_query(client_socket, result_list):
     if query.type == query_struct.Query_type.COMPUTE_FIBO:
         query.status = query_struct.Query_Status.SCHEDULED
         result_list.append(query)
-        return await asyncio.gather(get_next_query(client_socket, result_list), async_exec(query))
+        return await asyncio.gather(run_server(client_socket, result_list), async_exec(query))
     if query.type == query_struct.Query_type.LIST:
         client_socket.send(pickle.dumps(result_list))
-    return await get_next_query(client_socket, result_list)
+    return await run_server(client_socket, result_list)
 
 def server_start(client_socket):
-    """
-    starting point for the server
-    """
     result_list = []
-    asyncio.run(get_next_query(client_socket, result_list))
+    asyncio.run(run_server(client_socket, result_list))
 
 
 
